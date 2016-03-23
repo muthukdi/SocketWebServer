@@ -12,7 +12,7 @@ done
 # Run the web server
 if [ -z "$1" ]
 then
-	$JAVA_HOME/bin/java base.SocketWebServer &
+	$JAVA_HOME/bin/java base.SocketWebServer >> logs/server.log &
 else
 	$JAVA_HOME/bin/java base.SocketWebServer
 fi
