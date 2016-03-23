@@ -1,0 +1,33 @@
+<html>
+	<head>
+		<title>Test Index Page</title>
+	</head>
+	<script>
+		function getServerTime()
+		{
+		  var xhttp = new XMLHttpRequest();
+		  xhttp.onreadystatechange = function() 
+		  {
+			if (xhttp.readyState == 4 && xhttp.status == 200) 
+			{
+				document.getElementById("date").innerHTML = xhttp.responseText;
+			}
+		  };
+		  xhttp.open('GET', '/base/apps/test/Time.class', true);
+		  xhttp.send();
+		}
+	</script>
+	<body onload="getServerTime()">
+		<h1>Welcome to the Test App</h1>
+		<br />
+		<div id="date">Date/Time</div>
+		<br />
+		<form action="Hello.class">
+			Username:<br />
+			<input type="text" name="username"><br />
+			Password:<br />
+			<input type="text" name="password"><br /><br />
+			<input type="submit" value="Submit">
+		</form>
+	</body>
+</html>

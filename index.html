@@ -6,14 +6,29 @@
 			{
 				document.getElementById("box").style.backgroundColor = 'green';
 			}
+			function getServerTime()
+			{
+			  var xhttp = new XMLHttpRequest();
+			  xhttp.onreadystatechange = function() 
+			  {
+				if (xhttp.readyState == 4 && xhttp.status == 200) 
+				{
+					document.getElementById("date").innerHTML = xhttp.responseText;
+				}
+			  };
+			  xhttp.open('GET', '/base/apps/test/Time.class', true);
+			  xhttp.send();
+			}
 		</script>
 	</head>
-	<body>
+	<body onload="setInterval(getServerTime, 1000)">
 		<h1>Welcome to Cheepu's Web Server</h1>
 		<br />
 		<br />
 		<img src="/favicon.png" style="width:100px; height:100px; border-style:solid;"/>
 		<br />
 		<div id="box" style="width:100px; height:100px; border-style:solid;" onclick="fill()"></div>
+		<br />
+		<div id="date">Date/Time</date>
 	</body>
 </html>

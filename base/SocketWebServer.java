@@ -1,51 +1,21 @@
-/* SocketWebServer.java -- Matt Mahoney, mmahoney@cs.fit.edu
+package base;
 
-SocketWebServer.java runs a simple web server.  To run, cd to the directory
-containing the .html files to be served, and run:
+/* SocketWebServer.java -- Dilip Muthukrishnan, cheepu82@gmail.com
 
-  java SocketWebServer >logfile
+Adapted from this version by Matt Mahoney, mmahoney@cs.fit.edu
+http://cs.fit.edu/~mmahoney/cse3103/java/Webserver.java
 
-To kill the server, type Ctrl-C.
+SocketWebServer.java implements a simple HTTP web server which can be
+"extended" by creating custom web applications.
 
-The server serves files only in the current directory and subdirectories.
-It does not support CGI, cookies, authentication, keepalive, etc.
-Client requests are logged to standard output.
+Notes about this web server: 
 
-SocketWebServer accepts HTTP GET requests that begin with:
+1. It only accepts HTTP GET requests.
+2. It is capable of parsing query parameters.
+3. It can only serve files in the current directory and subdirectories.
+4. It does not support CGI, cookies, authentication, keepalive, etc.
+5. It can generate dynamic responses which consist of text/image content.
 
-  GET /filename.html
-
-If the file exists, it responds with:
-
-  HTTP/1.0 200 OK\r\n
-  Content-Type: text/html\r\n
-  \r\n
-  (contents of filename.html)
-
-where \r\n is a carriage return and line feed.  The content type depends
-on the filename extension as follows:
-
-.html   text/html
-.htm    text/html
-.gif    image/gif
-.jpeg   image/jpeg
-.jpg    image/jpeg
-.class  application/octet-stream
-.*      text/plain  (all other extensions)
-
-The server closes the connection after returning a file.  Keepalive
-(the default in HTTP/1.1) is not implemented.
-
-If the file does not exist or the request is not understood, the server
-sends an HTTP "404 Not Found" error message back to the client.
-
-If the client requests a directory without a trailing "/",
-then the client is redirected to append it with an "HTTP 301 Moved
-Permanently" response.  If the trailing slash is present, the server
-returns the file index.html if it exists.
-
-To prevent access outside the directory tree where the server was started,
-file names containing "..", "|", or ":" are rejected.
 */
 
 import java.util.*;
@@ -56,132 +26,267 @@ import java.net.*;
 // thread to handle the request.
 public class SocketWebServer 
 {
-  private static ServerSocket serverSocket;
+	private static ServerSocket serverSocket;
 
-  public static void main(String[] args) throws IOException 
-  {
-    serverSocket=new ServerSocket(80);  // Start, listen on port 80
-    while (true) 
+	public static void main(String[] args) throws IOException
 	{
-      try 
-	  {
-        Socket s=serverSocket.accept();  // Wait for a client to connect
-        new ClientHandler(s);  // Handle the client in a separate thread
-      }
-      catch (Exception x) 
-	  {
-        System.out.println(x);
-      }
-    }
-  }
+		serverSocket = new ServerSocket(9090);  // Start, listen on port 9090
+		while (true)
+		{
+			try
+			{
+				Socket s = serverSocket.accept();  // Wait for a client to connect
+				new ClientHandler(s);  // Handle the client in a separate thread
+			}
+			catch (Exception x)
+			{
+				System.out.println(new Date() + ": " + x.getMessage());
+			}
+		}
+	}
 }
 
 // A ClientHandler reads an HTTP request and responds
-class ClientHandler extends Thread 
+class ClientHandler extends Thread
 {
-  private Socket socket;  // The accepted socket from the SocketWebServer
+	private Socket socket;  // The accepted socket from the SocketWebServer
 
-  // Start the thread in the constructor
-  public ClientHandler(Socket s) 
-  {
-    socket=s;
-    start();
-  }
-
-  // Read the HTTP request, respond, and close the connection
-  public void run() 
-  {
-    try 
+	// Start the thread in the constructor
+	public ClientHandler(Socket s)
 	{
+		socket = s;
+		start();
+	}
 
-      // Open connections to the socket
-      BufferedReader in=new BufferedReader(new InputStreamReader(
-        socket.getInputStream()));
-      PrintStream out=new PrintStream(new BufferedOutputStream(
-        socket.getOutputStream()));
-
-      // Read filename from first input line "GET /filename.html ..."
-      // or if not in this format, treat as a file not found.
-      String s=in.readLine();
-      System.out.println(s);  // Log the request
-
-      // Attempt to serve the file.  Catch FileNotFoundException and
-      // return an HTTP error "404 Not Found".  Treat invalid requests
-      // the same way.
-      String filename="";
-      StringTokenizer st=new StringTokenizer(s);
-      try 
-	  {
-
-        // Parse the filename from the GET command
-        if (st.hasMoreElements() && st.nextToken().equalsIgnoreCase("GET")
-            && st.hasMoreElements())
-          filename=st.nextToken();
-        else
-          throw new FileNotFoundException();  // Bad request
-
-        // Append trailing "/" with "index.html"
-        if (filename.endsWith("/"))
-          filename+="index.html";
-
-        // Remove leading / from filename
-        while (filename.indexOf("/")==0)
-          filename=filename.substring(1);
-
-        // Replace "/" with "\" in path for PC-based servers
-        filename=filename.replace('/', File.separator.charAt(0));
-
-        // Check for illegal characters to prevent access to superdirectories
-        if (filename.indexOf("..")>=0 || filename.indexOf(':')>=0
-            || filename.indexOf('|')>=0)
-          throw new FileNotFoundException();
-
-        // If a directory is requested and the trailing / is missing,
-        // send the client an HTTP request to append it.  (This is
-        // necessary for relative links to work correctly in the client).
-        if (new File(filename).isDirectory()) 
+	// Read the HTTP request, respond, and close the connection
+	public void run()
+	{
+		BufferedReader in = null;
+		PrintStream out = null;
+		InputStream fis = null;
+		String filename = "";
+		try 
 		{
-          filename=filename.replace('\\', '/');
-          out.print("HTTP/1.0 301 Moved Permanently\r\n"+
-            "Location: /"+filename+"/\r\n\r\n");
-          out.close();
-          return;
-        }
+			// Open connections to the socket
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			out = new PrintStream(new BufferedOutputStream(socket.getOutputStream()));
 
-        // Open the file (may throw FileNotFoundException)
-        InputStream f=new FileInputStream(filename);
+			// Read filename from first input line "GET /filename.html ..."
+			// or if not in this format, treat as a file not found.
+			String s = in.readLine();
+			// If the filename is null or favicon.ico, then reject this request.
+			// This will mitigate against bogus requests.
+			if (s == null || s.contains("favicon.ico"))
+			{
+				System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + "Rejecting an invalid request.");  // Bad request
+				return;
+			}
+			System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + s);  // Log the request
 
-        // Determine the MIME type and print HTTP header
-        String mimeType="text/plain";
-        if (filename.endsWith(".html") || filename.endsWith(".htm"))
-          mimeType="text/html";
-        else if (filename.endsWith(".jpg") || filename.endsWith(".jpeg"))
-          mimeType="image/jpeg";
-        else if (filename.endsWith(".gif"))
-          mimeType="image/gif";
-        else if (filename.endsWith(".class"))
-          mimeType="application/octet-stream";
-        out.print("HTTP/1.0 200 OK\r\n"+
-          "Content-type: "+mimeType+"\r\n\r\n");
+			// Attempt to serve the file.  Catch FileNotFoundException and
+			// return an HTTP error "404 Not Found".  Treat invalid requests
+			// the same way.
+			StringTokenizer st = new StringTokenizer(s);
+			HashMap<String, String> queryParams = new HashMap<String, String>();
+			try
+			{
+				// Only handle the GET method
+				if (st.hasMoreElements() && st.nextToken().equalsIgnoreCase("GET") && st.hasMoreElements())
+				{
+					filename = st.nextToken();
+				}
+				else
+				{
+					throw new FileNotFoundException("Unable to parse the resource from the header!");  // Bad request
+				}
+				// Extract query parameters
+				if (filename.length() - filename.replaceAll("\\?", "").length() > 1)
+				{
+					throw new FileNotFoundException("More than one \"?\" mark detected!");  // Bad request
+				}
+				String[] urlComponents = filename.split("\\?");
+				filename = urlComponents[0];
+				if (urlComponents.length == 2)
+				{
+					String params = urlComponents[1];
+					String[] paramComponents = params.split("&");
+					int amp_count = params.length() - params.replaceAll("&", "").length();
+					if (paramComponents.length != amp_count + 1)
+					{
+						throw new FileNotFoundException("Too many \"&\" signs detected!");  // Bad request
+					}
+					int eq_count = params.length() - params.replaceAll("=", "").length();
+					if (paramComponents.length != eq_count)
+					{
+						throw new FileNotFoundException("Incorrect number of \"=\" detected!");  // Bad request
+					}
+					for (int i = 0; i < paramComponents.length; i++)
+					{
+						String[] pair = paramComponents[i].split("=");
+						if (pair.length == 2 && (pair[0] == null || pair[0].equals("")))
+						{
+							throw new FileNotFoundException("A key is missing from the query parameters!");  // Bad request
+						}
+						String key = null;
+						String value = null;
+						if (pair.length == 2)
+						{
+							key = URLDecoder.decode(pair[0], "UTF-8");
+							value = URLDecoder.decode(pair[1], "UTF-8");
+						}
+						else
+						{
+							key = URLDecoder.decode(pair[0], "UTF-8");
+						}
+						queryParams.put(key, value);
+					}
+				}
+				// Append trailing "/" with "index.html"
+				if (filename.endsWith("/"))
+				{
+					filename += "index.html";
+				}
+				// Remove leading / from filename
+				while (filename.indexOf("/") == 0)
+				{
+					filename = filename.substring(1);
+				}
+				// Replace "/" with "\" in path for PC-based servers
+				filename = filename.replace('/', File.separator.charAt(0));
+				// Check for illegal characters to prevent access to superdirectories
+				if (filename.indexOf("..") >= 0 || filename.indexOf(':') >= 0 || filename.indexOf('|') >= 0)
+				{
+					throw new FileNotFoundException("Do not attempt to access super directories!");
+				}
+				// If a directory is requested and the trailing / is missing,
+				// send the client an HTTP request to append it.  (This is
+				// necessary for relative links to work correctly in the client).
+				if (new File(filename).isDirectory())
+				{
+					filename = filename.replace('\\', '/');
+					out.print("HTTP/1.0 301 Moved Permanently\r\n" + "Location: /" + filename + "/\r\n\r\n");
+					return;
+				}
 
-        // Send file contents to client, then close the connection
-        byte[] a=new byte[4096];
-        int n;
-        while ((n=f.read(a))>0)
-          out.write(a, 0, n);
-        out.close();
-      }
-      catch (FileNotFoundException x) 
-	  {
-        out.println("HTTP/1.0 404 Not Found\r\n"+
-          "Content-type: text/html\r\n\r\n"+
-          "<html><head></head><body>"+filename+" not found</body></html>\n");
-        out.close();
-      }
-    }
-    catch (IOException x) 
-	{
-      System.out.println(x);
-    }
-  }
+				// Determine the MIME type
+				String mimeType = "text/plain";
+				if (filename.endsWith(".html") || filename.endsWith(".htm"))
+				{
+					mimeType = "text/html";
+				}
+				else if (filename.endsWith(".jpg") || filename.endsWith(".jpeg"))
+				{
+					mimeType = "image/jpeg";
+				}
+				else if (filename.endsWith(".gif"))
+				{
+					mimeType = "image/gif";
+				}
+				else if (filename.endsWith(".png"))
+				{
+					mimeType = "image/png";
+				}
+
+				// Generate resource dynamically if requested by the client. This could be 
+				// an entry point into a custom web application (i.e. dynamic functionality
+				// existing within /apps/<application-name>)
+				if (filename.endsWith(".class"))
+				{
+					// Parse the class name
+					String[] pieces = filename.split("\\.");
+					String classname = pieces[0];
+					classname = classname.replace(File.separator.charAt(0), '.');
+					// Instantiate class via reflection
+					Class c = Class.forName(classname);
+					ServerProcess sp = (ServerProcess)c.newInstance();
+					// Path to directory which contains this class file
+					String contextPath = filename.substring(0, filename.lastIndexOf(File.separator.charAt(0))+1);
+					// Delegate to custom ServerProcess
+					Response response = sp.execute(contextPath, queryParams);
+					// New file path and mime type for dynamic resource
+					filename = response.getPath(); 
+					mimeType = response.getMimeType();
+					// Open the file (may throw FileNotFoundException)
+					try
+					{
+						fis = new FileInputStream(filename);
+						// Output the header
+						out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\n\r\n");
+					}
+					catch (FileNotFoundException x)
+					{
+						filename = "default.txt";
+						mimeType = "text/plain";
+						fis = new FileInputStream(filename);
+						// Output the header
+						out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\n\r\n");
+					}
+					// Send file contents to client
+					// Could be text, html, images, etc.
+					byte[] buffer = new byte[4096];
+					int n;
+					while ((n = fis.read(buffer)) > 0)
+					{
+						out.write(buffer, 0, n);
+					}
+				}
+				else
+				{
+					// Open the file (may throw FileNotFoundException)
+					fis = new FileInputStream(filename);
+					// Output the header
+					out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\n\r\n");
+					// Send file contents to client
+					// Could be text, html, images, etc.
+					byte[] buffer = new byte[4096];
+					int n;
+					while ((n = fis.read(buffer)) > 0)
+					{
+						out.write(buffer, 0, n);
+					}
+				}
+			}
+			catch (FileNotFoundException | 
+				   ClassNotFoundException | 
+				   InstantiationException | 
+				   IllegalAccessException | 
+				   UnsupportedEncodingException |
+				   IllegalArgumentException x)
+			{
+				String reason = x.getMessage();
+				StringWriter sw = new StringWriter();
+				x.printStackTrace(new PrintWriter(sw));
+				String stackTrace = sw.toString();
+				out.println("HTTP/1.0 404 Not Found\r\n" + "Content-type: text/html\r\n\r\n" + "<html><head></head><body style='color:red;'><h3>" +
+							filename + " not found<br /><br />Reason:<br />" + reason + "<br /><br />Exception Stack Trace:<br />" + stackTrace + "</h3></body></html>\n");
+			}
+		}
+		catch (IOException x)
+		{
+			x.printStackTrace(System.out);
+		}
+		finally
+		{
+			try
+			{
+				if (out != null) out.close();
+				if (in != null) in.close();
+				if (fis != null) fis.close();
+				// Delete the temp file
+				if (filename.contains("response") && filename.endsWith(".tmp"))
+				{
+					File file = new File(filename);
+					if (!file.delete())
+					{
+						throw new IOException("Unable to delete temporary response file: " + filename);
+					}
+					//Files.delete(FileSystems.getDefault().getPath(filename));
+				}
+			}
+			catch (IOException | SecurityException ex)
+			{
+				ex.printStackTrace(System.out);
+			}
+		}
+	}
 }
