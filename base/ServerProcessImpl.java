@@ -10,7 +10,7 @@ import javax.imageio.ImageIO;
 
 public class ServerProcessImpl implements ServerProcess
 {
-	public Response execute(String contextPath, HashMap<String, String> queryParams) throws IOException
+	public Response execute(String contextPath, HashMap<String, String> queryParams, Session session) throws IOException
 	{
 		return new Response();
 	}

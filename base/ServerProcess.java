@@ -7,7 +7,7 @@ import java.awt.image.BufferedImage;
 
 public interface ServerProcess
 {
-	public Response execute(String contextPath, HashMap<String, String> queryParams) throws IOException;
+	public Response execute(String contextPath, HashMap<String, String> queryParams, Session session) throws IOException;
 	
 	public String saveText(String contextPath, String text) throws IOException;
 	

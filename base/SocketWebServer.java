@@ -8,13 +8,15 @@ http://cs.fit.edu/~mmahoney/cse3103/java/Webserver.java
 SocketWebServer.java implements a simple HTTP web server which can be
 "extended" by creating custom web applications.
 
-Notes about this web server: 
+Web server's capabilities: 
 
 1. It only accepts HTTP GET requests.
 2. It is capable of parsing query parameters.
-3. It can only serve files in the current directory and subdirectories.
-4. It does not support CGI, cookies, authentication, keepalive, etc.
-5. It can generate dynamic responses which consist of text/image content.
+3. It can serve static content from the current directory and subdirectories.
+4. It can serve dynamic text/image content via user-defined server processes.
+5. It supports a basic HTTP session via cookies.
+6. It does not support CGI, authentication, keepalive, etc.
+
 
 */
 
@@ -36,6 +38,7 @@ public class SocketWebServer
 			try
 			{
 				Socket s = serverSocket.accept();  // Wait for a client to connect
+				SessionManager.getInstance().removeExpiredSessions();
 				new ClientHandler(s);  // Handle the client in a separate thread
 			}
 			catch (Exception x)
@@ -65,6 +68,7 @@ class ClientHandler extends Thread
 		PrintStream out = null;
 		InputStream fis = null;
 		String filename = "";
+		boolean newSession = false;
 		try 
 		{
 			// Open connections to the socket
@@ -72,21 +76,54 @@ class ClientHandler extends Thread
 			out = new PrintStream(new BufferedOutputStream(socket.getOutputStream()));
 
 			// Read filename from first input line "GET /filename.html ..."
-			// or if not in this format, treat as a file not found.
-			String s = in.readLine();
+			String firstLine = in.readLine();
+			
 			// If the filename is null or favicon.ico, then reject this request.
 			// This will mitigate against bogus requests.
-			if (s == null || s.contains("favicon.ico"))
+			if (firstLine == null || firstLine.contains("favicon.ico"))
 			{
 				System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + "Rejecting an invalid request.");  // Bad request
 				return;
 			}
-			System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + s);  // Log the request
+			System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + firstLine);  // Log the request
+			
+			// Keep reading to find the session cookie header
+			String header = ".";
+			String sessionCookieHeader = "";
+			while (!header.equals(""))
+			{
+				header = in.readLine();
+				if (header.contains("sessionId"))
+				{
+					sessionCookieHeader = header;
+					break;
+				}
+			}
+			// Get/create a session associated with this request
+			Session session = null;
+			if (sessionCookieHeader.equals(""))
+			{
+				newSession = true;
+				session = SessionManager.getInstance().createSession();
+			}
+			else
+			{
+				// Parse session Id from cookie
+				String sessionId = sessionCookieHeader.split("=")[1];
+				// Get the session associated with this session Id
+				session = SessionManager.getInstance().getSessionWithId(sessionId);
+				// If the session has expired, create a new one
+				if (session == null)
+				{
+					newSession = true;
+					session = SessionManager.getInstance().createSession();
+				}
+			}
 
 			// Attempt to serve the file.  Catch FileNotFoundException and
 			// return an HTTP error "404 Not Found".  Treat invalid requests
 			// the same way.
-			StringTokenizer st = new StringTokenizer(s);
+			StringTokenizer st = new StringTokenizer(firstLine);
 			HashMap<String, String> queryParams = new HashMap<String, String>();
 			try
 			{
@@ -202,7 +239,7 @@ class ClientHandler extends Thread
 					// Path to directory which contains this class file
 					String contextPath = filename.substring(0, filename.lastIndexOf(File.separator.charAt(0))+1);
 					// Delegate to custom ServerProcess
-					Response response = sp.execute(contextPath, queryParams);
+					Response response = sp.execute(contextPath, queryParams, session);
 					// New file path and mime type for dynamic resource
 					filename = response.getPath(); 
 					mimeType = response.getMimeType();
@@ -211,7 +248,14 @@ class ClientHandler extends Thread
 					{
 						fis = new FileInputStream(filename);
 						// Output the header
-						out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\n\r\n");
+						if (newSession)
+						{
+							out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\nSet-Cookie: sessionId=" + session.getSessionId() + "\r\n\r\n");
+						}
+						else
+						{
+							out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\n\r\n");
+						}
 					}
 					catch (FileNotFoundException x)
 					{
@@ -219,7 +263,14 @@ class ClientHandler extends Thread
 						mimeType = "text/plain";
 						fis = new FileInputStream(filename);
 						// Output the header
-						out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\n\r\n");
+						if (newSession)
+						{
+							out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\nSet-Cookie: sessionId=" + session.getSessionId() + "\r\n\r\n");
+						}
+						else
+						{
+							out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\n\r\n");
+						}
 					}
 					// Send file contents to client
 					// Could be text, html, images, etc.
@@ -235,7 +286,14 @@ class ClientHandler extends Thread
 					// Open the file (may throw FileNotFoundException)
 					fis = new FileInputStream(filename);
 					// Output the header
-					out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\n\r\n");
+					if (newSession)
+					{
+						out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\nSet-Cookie: sessionId=" + session.getSessionId() + "\r\n\r\n");
+					}
+					else
+					{
+						out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\n\r\n");
+					}
 					// Send file contents to client
 					// Could be text, html, images, etc.
 					byte[] buffer = new byte[4096];
@@ -251,7 +309,8 @@ class ClientHandler extends Thread
 				   InstantiationException | 
 				   IllegalAccessException | 
 				   UnsupportedEncodingException |
-				   IllegalArgumentException x)
+				   IllegalArgumentException |
+				   NoClassDefFoundError x)
 			{
 				String reason = x.getMessage();
 				StringWriter sw = new StringWriter();

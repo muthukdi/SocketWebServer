@@ -2,6 +2,7 @@ package base.apps.test;
 
 import base.ServerProcessImpl;
 import base.Response;
+import base.Session;
 import java.util.HashMap;
 
 import java.awt.image.BufferedImage;
@@ -11,7 +12,7 @@ import java.io.IOException;
 
 public class Photo extends ServerProcessImpl
 {	
-	public Response execute(String contextPath, HashMap<String, String> queryParams) throws IOException
+	public Response execute(String contextPath, HashMap<String, String> queryParams, Session session) throws IOException
 	{
 		Response response = new Response();
 		response.setMimeType("image/png");
