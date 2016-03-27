@@ -12,14 +12,25 @@ public class Login extends ServerProcessImpl
 	{
 		Response response = new Response();
 		response.setMimeType("text/html");
+		String str = "";
 		String username = queryParams.get("username");
 		String password = queryParams.get("password");
-		session.addDataItem("username", username);
-		session.addDataItem("password", password);
-		String str = "";
-		str += "<html><head><title>Login</title>";
-		str += "<script>window.location = 'Hello.class';</script>";
-		str += "</head><body></body></html>";
+		if (username == null || username.trim().equals("") || password == null || password.trim().equals(""))
+		{
+			str += "<html><head><title>Login</title>";
+			str += "<script>window.location = 'index.html';</script>";
+			str += "</head><body></body></html>";
+		}
+		else
+		{
+			User user = new User();
+			user.setUsername(username.trim());
+			user.setPassword(password.trim());
+			session.addDataItem("user", user);
+			str += "<html><head><title>Login</title>";
+			str += "<script>window.location = 'Hello.class';</script>";
+			str += "</head><body></body></html>";
+		}
 		String resourcePath = saveText(contextPath, str);
 		response.setPath(resourcePath);
 		
