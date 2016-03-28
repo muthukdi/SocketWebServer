@@ -45,6 +45,7 @@ public class SessionManager
 			{
 				break;
 			}
+			session = null;
 		}
 		if (session != null)
 		{

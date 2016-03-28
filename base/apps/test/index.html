@@ -13,7 +13,7 @@
 				document.getElementById("date").innerHTML = xhttp.responseText;
 			}
 		  };
-		  xhttp.open('GET', '/base/apps/test/Time.class', true);
+		  xhttp.open('GET', '/base/apps/test/Time.class?cache_buster=' + new Date(), true);
 		  xhttp.send();
 		}
 	</script>
