@@ -61,7 +61,7 @@ public class SessionManager
 		return session;
 	}
 	
-	public Session createSession()
+	public synchronized Session createSession()
 	{
 		Session session = new Session();
 		sessions.add(session);

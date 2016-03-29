@@ -82,10 +82,10 @@ class ClientHandler extends Thread
 			// This will mitigate against bogus requests.
 			if (firstLine == null || firstLine.contains("favicon.ico"))
 			{
-				System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + "Rejecting an invalid request.");  // Bad request
+				//System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + "Rejecting an invalid request.");  // Bad request
 				return;
 			}
-			System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + firstLine);  // Log the request
+			//System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + firstLine);  // Log the request
 			
 			// Keep reading to find the session cookie header
 			String header = ".";
@@ -101,22 +101,25 @@ class ClientHandler extends Thread
 			}
 			// Get/create a session associated with this request
 			Session session = null;
-			if (sessionCookieHeader.equals(""))
+			synchronized (SessionManager.getInstance())
 			{
-				newSession = true;
-				session = SessionManager.getInstance().createSession();
-			}
-			else
-			{
-				// Parse session Id from cookie
-				String sessionId = sessionCookieHeader.split("=")[1];
-				// Get the session associated with this session Id
-				session = SessionManager.getInstance().getSessionWithId(sessionId);
-				// If the session has expired, create a new one
-				if (session == null)
+				if (sessionCookieHeader.equals(""))
 				{
 					newSession = true;
 					session = SessionManager.getInstance().createSession();
+				}
+				else
+				{
+					// Parse session Id from cookie
+					String sessionId = sessionCookieHeader.split("=")[1];
+					// Get the session associated with this session Id
+					session = SessionManager.getInstance().getSessionWithId(sessionId);
+					// If the session has expired, create a new one
+					if (session == null)
+					{
+						newSession = true;
+						session = SessionManager.getInstance().createSession();
+					}
 				}
 			}
 
@@ -250,7 +253,7 @@ class ClientHandler extends Thread
 						// Output the header
 						if (newSession)
 						{
-							out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\nSet-Cookie: sessionId=" + session.getSessionId() + "\r\n\r\n");
+							out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\nSet-Cookie: sessionId=" + session.getSessionId() + "; Path=/;" + "\r\n\r\n");
 						}
 						else
 						{
@@ -265,7 +268,7 @@ class ClientHandler extends Thread
 						// Output the header
 						if (newSession)
 						{
-							out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\nSet-Cookie: sessionId=" + session.getSessionId() + "\r\n\r\n");
+							out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\nSet-Cookie: sessionId=" + session.getSessionId() + "; Path=/;" + "\r\n\r\n");
 						}
 						else
 						{
@@ -288,7 +291,7 @@ class ClientHandler extends Thread
 					// Output the header
 					if (newSession)
 					{
-						out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\nSet-Cookie: sessionId=" + session.getSessionId() + "\r\n\r\n");
+						out.print("HTTP/1.0 200 OK\r\n" + "Content-type: " + mimeType + "\r\nSet-Cookie: sessionId=" + session.getSessionId() + "; Path=/;" + "\r\n\r\n");
 					}
 					else
 					{
