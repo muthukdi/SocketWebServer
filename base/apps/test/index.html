@@ -13,7 +13,7 @@
 				document.getElementById("date").innerHTML = xhttp.responseText;
 			}
 		  };
-		  xhttp.open('GET', '/base/apps/test/Time.class?cache_buster=' + new Date(), true);
+		  xhttp.open('GET', '/base/apps/test/Time.class?cache_buster=' + new Date().getTime(), true);
 		  xhttp.send();
 		}
 	</script>
@@ -27,6 +27,19 @@
 			<input type="text" name="username"><br />
 			Password:<br />
 			<input type="text" name="password"><br /><br />
+			<input type="submit" value="Submit">
+		</form>
+		<br />
+		<br />
+		<form action="Signup.class">
+			Username:<br />
+			<input type="text" name="username"><br />
+			Password:<br />
+			<input type="text" name="password"><br />
+			First Name:<br />
+			<input type="text" name="firstname"><br />
+			Last Name:<br />
+			<input type="text" name="lastname"><br /><br />
 			<input type="submit" value="Submit">
 		</form>
 	</body>

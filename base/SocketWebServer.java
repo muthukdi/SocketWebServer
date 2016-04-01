@@ -82,10 +82,10 @@ class ClientHandler extends Thread
 			// This will mitigate against bogus requests.
 			if (firstLine == null || firstLine.contains("favicon.ico"))
 			{
-				//System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + "Rejecting an invalid request.");  // Bad request
+				System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + "Rejecting an invalid request.");  // Bad request
 				return;
 			}
-			//System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + firstLine);  // Log the request
+			System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + firstLine);  // Log the request
 			
 			// Keep reading to find the session cookie header
 			String header = ".";

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.io.IOException;
 import java.sql.*;
 
-public class Login extends ServerProcessImpl
+public class Signup extends ServerProcessImpl
 {	
 	public Response execute(String contextPath, HashMap<String, String> queryParams, Session session) throws IOException
 	{
@@ -17,6 +17,8 @@ public class Login extends ServerProcessImpl
 		String response_msg = "";
 		String username = queryParams.get("username");
 		String password = queryParams.get("password");
+		String firstname = queryParams.get("firstname");
+		String lastname = queryParams.get("lastname");
 		String db_path = "jdbc:h2:~/test";
 		String db_user = "sa";
 		String db_password = "";
@@ -24,10 +26,9 @@ public class Login extends ServerProcessImpl
 		Connection cn = null;
 		Statement st = null;
 		ResultSet rs = null;
-		String firstname = null;
-		String lastname = null;
 		
-		if (username == null || username.trim().equals("") || password == null || password.trim().equals(""))
+		if (username == null || username.trim().equals("") || password == null || password.trim().equals("") || 
+			firstname == null || firstname.trim().equals("") || lastname == null || lastname.trim().equals(""))
 		{
 			response_msg = "Invalid input detected!  ";
 		}
@@ -45,29 +46,9 @@ public class Login extends ServerProcessImpl
 							 "lastname varchar(20) DEFAULT NULL," +
 							 "PRIMARY KEY (username))";
 				st.executeUpdate(sqlCommand);
-				sqlCommand = "select * from user where username = '" + username.trim() + "' and password = '" + password.trim() + "'";
-				rs = st.executeQuery(sqlCommand);
-				if (rs.next())
-				{
-					firstname = rs.getString("firstname");
-					lastname = rs.getString("lastname");
-					User user = new User();
-					user.setUsername(username.trim());
-					user.setPassword(password.trim());
-					user.setFirstname(firstname);
-					user.setLastname(lastname);
-					session.addDataItem("user", user);
-					response_str += "<html><head><title>Login</title>";
-					response_str += "<script>window.location = 'Hello.class';</script>";
-					response_str += "</head><body></body></html>";
-					String resourcePath = saveText(contextPath, response_str);
-					response.setPath(resourcePath);
-					return response;
-				}
-				else
-				{
-					response_msg = "Invalid login credentials!  ";
-				}
+				sqlCommand = "insert into user values ('" + username + "','" + password + "','" + firstname + "','" + lastname + "')";
+				st.executeUpdate(sqlCommand);
+				response_msg = "New user created successfully.  ";
 			}
 			catch (ClassNotFoundException | SQLException ex)
 			{
