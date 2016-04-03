@@ -1,13 +1,16 @@
 @echo off
 
+Setlocal EnableDelayedExpansion
+
 :: Set the location of your JDK
 set JAVA_HOME="C:\Program Files (x86)\Java\jdk1.7.0_79"
 
-:: Start the H2 database server
-start %JAVA_HOME%\bin\javaw h2-1.4.191.jar -tool
-
 :: Compile all application source files
-for /d %%i in (base\apps\*) do %JAVA_HOME%\bin\javac -sourcepath . -cp %%i\*.jar %%i\*.java
+for /d %%i in (base\apps\*) do %JAVA_HOME%\bin\javac -cp %%i\*;. %%i\*.java
 
-:: Run the web server
-%JAVA_HOME%\bin\java -cp h2-1.4.191.jar;. base.SocketWebServer
+:: Set the class search path
+set CLASSPATH=.;h2-1.4.191.jar
+for /d %%i in (base\apps\*) do set CLASSPATH=!CLASSPATH!;%%i\*
+
+:: Run the web server with H2 and third-party dependencies
+%JAVA_HOME%\bin\java -cp %CLASSPATH% base.SocketWebServer
