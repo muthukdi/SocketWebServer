@@ -48,6 +48,7 @@ public class Signup extends ServerProcessImpl
 				st.executeUpdate(sqlCommand);
 				sqlCommand = "insert into user values ('" + username + "','" + password + "','" + firstname + "','" + lastname + "')";
 				st.executeUpdate(sqlCommand);
+				cn.commit();
 				response_msg = "New user created successfully.  ";
 			}
 			catch (ClassNotFoundException | SQLException ex)

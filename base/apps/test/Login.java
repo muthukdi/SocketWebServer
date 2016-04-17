@@ -31,6 +31,10 @@ public class Login extends ServerProcessImpl
 		{
 			response_msg = "Invalid input detected!  ";
 		}
+		else if (UserManager.getInstance().getUser(username) != null)
+		{
+			response_msg = "This user is already in the chat room!  ";
+		}
 		else
 		{
 			try
@@ -45,6 +49,7 @@ public class Login extends ServerProcessImpl
 							 "lastname varchar(20) DEFAULT NULL," +
 							 "PRIMARY KEY (username))";
 				st.executeUpdate(sqlCommand);
+				cn.commit();
 				sqlCommand = "select * from user where username = '" + username.trim() + "' and password = '" + password.trim() + "'";
 				rs = st.executeQuery(sqlCommand);
 				if (rs.next())
@@ -57,12 +62,19 @@ public class Login extends ServerProcessImpl
 					user.setFirstname(firstname);
 					user.setLastname(lastname);
 					session.addDataItem("user", user);
-					response_str += "<html><head><title>Login</title>";
-					response_str += "<script>window.location = 'Hello.class';</script>";
-					response_str += "</head><body></body></html>";
-					String resourcePath = saveText(contextPath, response_str);
-					response.setPath(resourcePath);
-					return response;
+					if (UserManager.getInstance().addUser(user))
+					{
+						response_str += "<html><head><title>Login</title>";
+						response_str += "<script>window.location = 'ChatRoom.class';</script>";
+						response_str += "</head><body></body></html>";
+						String resourcePath = saveText(contextPath, response_str);
+						response.setPath(resourcePath);
+						return response;
+					}
+					else
+					{
+						response_msg = "Unable to join chat room!  ";
+					}
 				}
 				else
 				{
@@ -90,7 +102,7 @@ public class Login extends ServerProcessImpl
 			}
 		}
 		
-		response_str += "<html><head><title>Signup</title></head><body>";
+		response_str += "<html><head><title>Login</title></head><body>";
 		response_str += response_msg;
 		response_str += "Click <a href='index.html'>here</a> to go back.";
 		response_str += "</body></html>";

@@ -10,7 +10,7 @@ public class Session
 	private String sessionId;
 	private HashMap<String, Object> data;
 	private long expiryTime;
-	private static final long EXPIRE_INTERVAL = 15000L;
+	private static final long EXPIRE_INTERVAL = 300000L;
 	
 	public Session()
 	{

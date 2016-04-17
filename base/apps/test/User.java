@@ -1,16 +1,20 @@
 package base.apps.test;
 
-import java.io.Serializable;
-
-public class User implements Serializable
+public class User
 {
-	
-	private static final long serialVersionUID = 1L;
 	
 	private String username;
 	private String password;
 	private String firstname;
 	private String lastname;
+	private long inactiveTime;
+	private static final long INACTIVE_INTERVAL = 240000L;
+	private int lastMessageId;
+	
+	public User()
+	{
+		inactiveTime = System.currentTimeMillis() + INACTIVE_INTERVAL;
+	}
 	
 	public String getUsername() 
 	{
@@ -50,6 +54,26 @@ public class User implements Serializable
 	public void setLastname(String lastname)
 	{
 		this.lastname = lastname;
+	}
+	
+	public int getLastMessageId() 
+	{
+		return lastMessageId;
+	}
+	
+	public void setLastMessageId(int lastMessageId)
+	{
+		this.lastMessageId = lastMessageId;
+	}
+	
+	public boolean isActive() 
+	{
+		return System.currentTimeMillis() < inactiveTime;
+	}
+	
+	public void resetInactiveTime()
+	{
+		inactiveTime = System.currentTimeMillis() + INACTIVE_INTERVAL;
 	}
 
 }
