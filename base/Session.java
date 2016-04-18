@@ -50,4 +50,9 @@ public class Session
 		expiryTime = System.currentTimeMillis() + EXPIRE_INTERVAL;
 	}
 	
+	public void invalidate()
+	{
+		expiryTime = System.currentTimeMillis();
+	}
+	
 }

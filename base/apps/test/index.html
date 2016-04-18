@@ -2,22 +2,7 @@
 	<head>
 		<title>Simple Chat Room Application</title>
 	</head>
-	<script>
-		function getServerTime()
-		{
-		  var xhttp = new XMLHttpRequest();
-		  xhttp.onreadystatechange = function() 
-		  {
-			if (xhttp.readyState == 4 && xhttp.status == 200) 
-			{
-				document.getElementById("date").innerHTML = xhttp.responseText;
-			}
-		  };
-		  xhttp.open('GET', '/base/apps/test/Time.class?cache_buster=' + new Date().getTime(), true);
-		  xhttp.send();
-		}
-	</script>
-	<body onload="getServerTime()">
+	<body>
 		<h1>Welcome to the Chat Room Login/Signup Page</h1>
 		<br />
 		<br />

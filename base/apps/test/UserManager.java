@@ -90,6 +90,11 @@ public class UserManager
 		return user;
 	}
 	
+	public Object[] getUsers()
+	{
+		return users.toArray();
+	}
+	
 	public synchronized boolean addUser(User user)
 	{
 		// Insert user joined message into the database

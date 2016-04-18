@@ -75,5 +75,10 @@ public class User
 	{
 		inactiveTime = System.currentTimeMillis() + INACTIVE_INTERVAL;
 	}
+	
+	public void deactivate()
+	{
+		inactiveTime = System.currentTimeMillis();
+	}
 
 }
