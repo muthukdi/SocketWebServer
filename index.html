@@ -16,7 +16,7 @@
 					document.getElementById("date").innerHTML = xhttp.responseText;
 				}
 			  };
-			  xhttp.open('GET', '/base/apps/test/Time.class?cache_buster=' + new Date().getTime(), true);
+			  xhttp.open('GET', '/base/apps/test/Time.class?ajax=true&cache_buster=' + new Date().getTime(), true);
 			  xhttp.send();
 			}
 		</script>

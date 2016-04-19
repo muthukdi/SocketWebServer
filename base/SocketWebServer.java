@@ -85,7 +85,6 @@ class ClientHandler extends Thread
 				System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + "Rejecting an invalid request.");  // Bad request
 				return;
 			}
-			System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + firstLine);  // Log the request
 			
 			// Keep reading to find the session cookie header
 			String header = ".";
@@ -181,6 +180,15 @@ class ClientHandler extends Thread
 						queryParams.put(key, value);
 					}
 				}
+				
+				// Log this request if it is not an AJAX request
+				// or else the log files might grow too large!
+				String ajax = queryParams.get("ajax");
+				if (ajax == null)
+				{
+					System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + firstLine);
+				}
+				
 				// Append trailing "/" with "index.html"
 				if (filename.endsWith("/"))
 				{

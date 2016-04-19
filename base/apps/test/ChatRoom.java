@@ -44,7 +44,7 @@ public class ChatRoom extends ServerProcessImpl
 				str += "else { var element = document.getElementById('chat_window');";
 				str += "element.innerHTML += xhttp.responseText;";
 				str += "if (xhttp.responseText) { element.scrollTop = element.scrollHeight; } } } };";
-			    str += "xhttp.open('GET', '/base/apps/test/GetMessages.class?cache_buster=' + new Date().getTime(), true);";
+			    str += "xhttp.open('GET', '/base/apps/test/GetMessages.class?ajax=true&cache_buster=' + new Date().getTime(), true);";
 				str += "xhttp.send(); }";
 				str += "function updateUsersWindow() {";
 				str += "var xhttp = new XMLHttpRequest();";
@@ -53,7 +53,7 @@ public class ChatRoom extends ServerProcessImpl
 				str += "var element = document.getElementById('users_window');";
 				str += "element.innerHTML = xhttp.responseText;";
 				str += "element.scrollTop = element.scrollHeight; } };";
-			    str += "xhttp.open('GET', '/base/apps/test/GetUsers.class?cache_buster=' + new Date().getTime(), true);";
+			    str += "xhttp.open('GET', '/base/apps/test/GetUsers.class?ajax=true&cache_buster=' + new Date().getTime(), true);";
 				str += "xhttp.send(); }";
 				str += "function sendMessage() {";
 				str += "var message = document.getElementById('message').value.replace(/'/g, \"''\").replace(/\\?/g, '&#63;');";
@@ -64,7 +64,7 @@ public class ChatRoom extends ServerProcessImpl
 				str += "if (xhttp.readyState == 4 && xhttp.status == 200) {";
 				str += "if (xhttp.responseText == 'expired' || xhttp.responseText == 'inactive') { window.location = 'index.html'; }";
 				str += "else { document.getElementById('message_status').innerHTML = xhttp.responseText; } } };";
-			    str += "xhttp.open('GET', '/base/apps/test/SendMessage.class?message=' + message + '&cache_buster=' + new Date().getTime(), true);";
+			    str += "xhttp.open('GET', '/base/apps/test/SendMessage.class?ajax=true&message=' + message + '&cache_buster=' + new Date().getTime(), true);";
 				str += "xhttp.send(); }";
 				str += "</script></head>";
 				str += "<body onload='setInterval(updateChatWindow, 1000);setInterval(updateUsersWindow, 1000);'>";
