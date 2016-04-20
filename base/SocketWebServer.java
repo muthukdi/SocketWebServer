@@ -181,10 +181,9 @@ class ClientHandler extends Thread
 					}
 				}
 				
-				// Log this request if it is not an AJAX request
-				// or else the log files might grow too large!
-				String ajax = queryParams.get("ajax");
-				if (ajax == null)
+				// Log this request if log parameter is not set
+				String log = queryParams.get("log");
+				if (log == null)
 				{
 					System.out.println(new Date() + ": " + socket.getRemoteSocketAddress() + " " + firstLine);
 				}

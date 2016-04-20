@@ -1,10 +1,8 @@
-1. Break JavaScript and CSS out of the server process.
-2. Filter out the AJAX requests from the logs.
-3. Create separate data access layer.
-4. Switch over to using Log4j for logging.
-5. Allow special characters (eg. "&" and "?") in chat messages.
-6. Create multiple chat rooms.
-7. Allow private chats.
-8. Make application mobile friendly.
-9. Allow multiline chat input.
-10. Make it possible to send/receive photos. (how?)
+1. Create separate data access layer.
+2. Switch over to using Log4j for logging.
+3. Allow special characters (eg. "&" and "?") in chat messages.
+4. Create multiple chat rooms.
+5. Allow private chats.
+6. Make application mobile friendly.
+7. Allow multiline chat input.
+8. Make it possible to send/receive photos. (how?)

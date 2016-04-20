@@ -1,0 +1,38 @@
+.button {
+  display: inline-block;
+  padding: 3px 25px;
+  font-size: 15px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #fff;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 5px #9b9;
+  float: right;
+}
+
+.button:hover {background-color: #3e8e41}
+
+.button:active {
+  background-color: #3e8e41;
+  box-shadow: 0 6px #9b9;
+  transform: translateY(2px);
+}
+
+#chat_window {
+	background-color: lightblue;
+	width: 75%;
+	height: 75%;
+	overflow: scroll;
+	float: left;
+}
+
+#users_window {
+	background-color: lightgrey;
+	width: 25%;
+	height: 75%;
+	overflow: scroll;
+}
